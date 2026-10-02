@@ -1,0 +1,81 @@
+{
+  "manifest_version": 3,
+  "name": "Google SecOps Assistant & Troubleshooter",
+  "version": "1.2.19",
+  "description": "AI-powered side panel assistant for training, query building, and troubleshooting in Google SecOps.",
+  "icons": {
+    "16": "assets/icon-16.png",
+    "48": "assets/icon-48.png",
+    "128": "assets/icon-128.png"
+  },
+  "action": {
+    "default_title": "Open SecOps Assistant"
+  },
+  "side_panel": {
+    "default_path": "sidepanel/sidepanel.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": [
+    "sidePanel",
+    "tabs",
+    "activeTab",
+    "scripting",
+    "storage",
+    "identity",
+    "webNavigation"
+  ],
+  "host_permissions": [
+    "<all_urls>",
+    "https://backstory.chronicle.security/*",
+    "https://*.backstory.chronicle.security/*",
+    "https://*.chronicle.security/*",
+    "https://*.secops.google.com/*",
+    "https://docs.cloud.google.com/chronicle/*",
+    "https://cloud.google.com/chronicle/*",
+    "https://docs.cloud.google.com/security-operations/*",
+    "https://cloud.google.com/security-operations/*",
+    "https://*.googleapis.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://backstory.chronicle.security/*",
+        "https://*.backstory.chronicle.security/*",
+        "https://*.chronicle.security/*",
+        "https://*.secops.google.com/*",
+        "https://docs.cloud.google.com/chronicle/*",
+        "https://cloud.google.com/chronicle/*",
+        "https://docs.cloud.google.com/security-operations/*",
+        "https://cloud.google.com/security-operations/*"
+      ],
+      "js": [
+        "content/dom_utils.js",
+        "content/extractors/workdesk.js",
+        "content/extractors/soar_search.js",
+        "content/extractors/data_tables.js",
+        "content/extractors/threats.js",
+        "content/extractors/udm_search.js",
+        "content/extractors/rules_editor.js",
+        "content/extractors/case_view.js",
+        "content/extractors/breach_analytics.js",
+        "content/extractors/docs_view.js",
+        "content/extractors/settings_view.js",
+        "content/content_script.js",
+        "content/ai_pointer.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA07yGHlntPhGqa+4fYBcmWKAjONcHOucNHH6M6YeVWzCSiwzd8FDTndC9HwfpMeS0lgvIRNxZFGJek3tvJetTvFo48eDraAV7Np9yITEQm3uS8qD16lo9GQXvGlzAw52T0nOx8jsj8Ee6nzD5ZxvPPgRsL6PRA9UPFW15idFxRZbkOO3mPCoTYcMFdD4qnXcFJm/0CZfGfGAu0zf+CTYkbTKiVx4BrdWWF5tWTGIgR/paQQbc8PIg9O7rZBIGgoB9eHLpoQK6uV7xhFZK1rMUUkwqDTNA3xO2gADIwKQmamEALw4QsPHS2dHeJo5Xq3ViynLfRgLK4vBe50Jx0f84ewIDAQAB",
+  "oauth2": {
+    "client_id": "37679061640-cr39buop386u2uph5mf4e0qr82jvkei9.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/userinfo.email",
+      "https://www.googleapis.com/auth/userinfo.profile",
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/chronicle"
+    ]
+  }
+}

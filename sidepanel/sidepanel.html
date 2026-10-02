@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google SecOps Assistant</title>
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <!-- Consolidated Streamlined Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="brand" title="Google SecOps Assistant">
+          <svg class="shield-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="M9 12l2 2 4-4"/>
+          </svg>
+        </div>
+        <span class="context-pill" id="pagePill" title="Detected SecOps workspace">
+          <span class="dot"></span>
+          <span id="pagePillText">Detecting page...</span>
+        </span>
+        <span id="errorBadge" class="error-badge hidden">0 Errors</span>
+      </div>
+      <div class="header-actions">
+        <button id="clearChatBtn" class="icon-btn" title="Clear chat history" aria-label="Clear chat history">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+          </svg>
+        </button>
+        <button id="settingsBtn" class="icon-btn" title="Settings" aria-label="Settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </button>
+        <button id="headerMenuBtn" class="icon-btn" title="Options & Context" aria-label="Options & Context" aria-haspopup="true" aria-expanded="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="4" y1="21" x2="4" y2="14"/>
+            <line x1="4" y1="10" x2="4" y2="3"/>
+            <line x1="12" y1="21" x2="12" y2="12"/>
+            <line x1="12" y1="8" x2="12" y2="3"/>
+            <line x1="20" y1="21" x2="20" y2="16"/>
+            <line x1="20" y1="12" x2="20" y2="3"/>
+            <line x1="1" y1="14" x2="7" y2="14"/>
+            <line x1="9" y1="8" x2="15" y2="8"/>
+            <line x1="17" y1="16" x2="23" y2="16"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Floating Options Dropdown Menu (Secondary Controls) -->
+      <div id="headerMenuDropdown" class="header-menu-dropdown hidden" role="menu" aria-label="Assistant Options">
+        <div class="menu-section-header">Context & Telemetry</div>
+        <label class="menu-item-toggle" title="Send detected SecOps page context to Gemini">
+          <input type="checkbox" id="includeContextToggle" checked>
+          <span class="menu-item-label">Send Page Context</span>
+        </label>
+        <label class="menu-item-toggle" title="AI Pointer: Wiggle cursor or Alt+Click widgets to inspect or capture">
+          <input type="checkbox" id="aiPointerToggle" checked>
+          <span class="menu-item-label">✨ Pointer (AI Cursor)</span>
+        </label>
+        <button id="inspectContextBtn" class="menu-item-btn" role="menuitem" title="View captured context payload">
+          <svg class="menu-item-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <span class="menu-item-label">Inspect Context Payload</span>
+        </button>
+
+        <div class="menu-divider"></div>
+
+        <div class="menu-section-header">Assistant Style & Skills</div>
+        <label class="menu-item-toggle" title="Suppress AI fluff and enforce direct, technical security analyst phrasing">
+          <input type="checkbox" id="unslopToggle" checked>
+          <span class="menu-item-label">Concise Style (Unslop)</span>
+        </label>
+        <button id="ambientSkillsPill" class="menu-item-btn" role="menuitem" title="Active background skills">
+          <svg class="menu-item-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19.5 14.5A2.5 2.5 0 0 0 17 12V6a2 2 0 0 0-2-2H9a2.5 2.5 0 0 0-5 0H2v6a2.5 2.5 0 0 0 0 5v5a2 2 0 0 0 2 2h6a2.5 2.5 0 0 0 5 0h5a2 2 0 0 0 2-2v-5a2.5 2.5 0 0 0-2.5-2.5z"/>
+          </svg>
+          <span class="menu-item-label">Active Tone / Skills</span>
+          <span id="ambientSkillsText" class="menu-item-badge">Unslop</span>
+        </button>
+        <button id="skillsBtn" class="menu-item-btn" role="menuitem" title="Agent Skills Library" aria-label="Agent Skills Library">
+          <svg class="menu-item-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+          </svg>
+          <span class="menu-item-label">Agent Skills Library</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Collapsible Context Preview Inspector -->
+    <div id="contextInspector" class="context-inspector hidden">
+      <div class="inspector-header">
+        <span>Active Page Context Payload</span>
+        <button id="refreshContextBtn" class="icon-small-btn" title="Refresh context" aria-label="Refresh Active Page Context">↻</button>
+      </div>
+      <pre id="contextRawText">No context loaded.</pre>
+    </div>
+
+    <!-- Compact Streamlined Suggestions Bar (Single Row) -->
+    <div class="suggestions-section" id="suggestionsSection">
+      <div class="suggestions-filter-bar" id="suggestionsFilterBar" role="tablist" aria-label="Filter suggestions">
+        <button class="filter-tab active" data-filter="all" id="filterTabAll" role="tab" aria-selected="true" title="Show all suggestions">All</button>
+        <button class="filter-tab" data-filter="help" id="filterTabHelp" role="tab" aria-selected="false" title="Help & Documentation via Developer Knowledge MCP">
+          <svg class="tab-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+          </svg>
+          <span>Help</span>
+        </button>
+        <button class="filter-tab" data-filter="action" id="filterTabAction" role="tab" aria-selected="false" title="Live Operations & Telemetry via SecOps MCP">
+          <svg class="tab-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+          </svg>
+          <span>Action</span>
+        </button>
+      </div>
+      <div class="suggestions-divider"></div>
+      <div class="quick-actions" id="quickActions">
+        <button class="chip chip-help" data-action="docs" data-target-mcp="help">
+          <svg class="chip-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+          </svg>
+          <span>Ask about page</span>
+        </button>
+        <button class="chip chip-help" data-action="troubleshoot" data-target-mcp="help">
+          <svg class="chip-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+          </svg>
+          <span>Troubleshoot</span>
+        </button>
+        <button class="chip chip-action" data-action="udm" data-target-mcp="action">
+          <svg class="chip-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+          </svg>
+          <span>Run UDM query</span>
+        </button>
+        <button class="chip chip-action" data-action="yara" data-target-mcp="action">
+          <svg class="chip-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+          </svg>
+          <span>Build YARA-L</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Chat Messages Container -->
+    <div class="messages-container" id="messagesContainer">
+      <div class="message assistant welcome">
+        <div class="message-content">
+          <p><strong>Welcome to Google SecOps Assistant!</strong></p>
+          <p>I can help you build UDM queries, troubleshoot YARA-L rules, triage cases, and explain Chronicle documentation.</p>
+          <p class="hint">
+            <svg class="hint-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="16" x2="12" y2="12"/>
+              <line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+            <span>Navigate anywhere in SecOps and I will automatically synchronize with your active screen.</span>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat Input Area -->
+    <div class="input-area">
+      <div id="imagePreviewContainer" class="image-preview-container" style="display: none;">
+        <div class="image-thumbnail-wrapper">
+          <img id="imageThumbnail" class="image-thumbnail" alt="Screen preview" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'%3E%3C/svg%3E" />
+          <button id="removeImageBtn" class="remove-image-btn" title="Remove screenshot" aria-label="Remove screenshot">&times;</button>
+        </div>
+        <span class="image-preview-text">📸 Screen attached</span>
+      </div>
+
+      <!-- Active On-Demand Skill Chip -->
+      <div id="activeSkillChipContainer" class="active-skill-chip-container" style="display: none;">
+        <span class="active-skill-chip">
+          <span class="chip-icon">
+            <svg class="chip-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19.5 14.5A2.5 2.5 0 0 0 17 12V6a2 2 0 0 0-2-2H9a2.5 2.5 0 0 0-5 0H2v6a2.5 2.5 0 0 0 0 5v5a2 2 0 0 0 2 2h6a2.5 2.5 0 0 0 5 0h5a2 2 0 0 0 2-2v-5a2.5 2.5 0 0 0-2.5-2.5z"/>
+            </svg>
+          </span>
+          <span id="activeSkillChipName">/grill-me</span>
+          <button id="removeActiveSkillBtn" class="chip-remove-btn" title="Remove active skill" aria-label="Remove active skill">&times;</button>
+        </span>
+      </div>
+
+      <!-- Slash Command Floating Autocomplete Menu -->
+      <div id="slashCommandMenu" class="slash-command-menu hidden">
+        <div class="slash-menu-header">Skills & Commands (↑↓ to navigate, Enter/Tab to select)</div>
+        <div id="slashMenuList" class="slash-menu-list"></div>
+      </div>
+
+      <div class="input-wrapper">
+        <button id="captureScreenBtn" class="input-icon-btn" title="Attach screenshot of active SecOps tab" aria-label="Attach screenshot of active SecOps tab">
+          <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+            <circle cx="12" cy="13" r="4"/>
+          </svg>
+        </button>
+        <textarea id="chatInput" placeholder="Ask a question or type / for skills (e.g. /grill-me)..." rows="1" aria-label="Ask a question or enter a slash command"></textarea>
+        <button id="sendBtn" class="send-btn" title="Send message" aria-label="Send message">
+          <svg class="send-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="22" y1="2" x2="11" y2="13"/>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+          <svg class="stop-icon" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
+            <rect x="5" y="5" width="14" height="14" rx="2"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Skills Management Modal -->
+    <div id="skillsModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="skillsModalTitle">
+      <div class="modal-card modal-large">
+        <div class="modal-header">
+          <div class="modal-header-title">
+            <span class="icon">
+              <svg class="modal-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19.5 14.5A2.5 2.5 0 0 0 17 12V6a2 2 0 0 0-2-2H9a2.5 2.5 0 0 0-5 0H2v6a2.5 2.5 0 0 0 0 5v5a2 2 0 0 0 2 2h6a2.5 2.5 0 0 0 5 0h5a2 2 0 0 0 2-2v-5a2.5 2.5 0 0 0-2.5-2.5z"/>
+              </svg>
+            </span>
+            <h3 id="skillsModalTitle">Agent Skills Library</h3>
+          </div>
+          <button id="closeSkillsBtn" class="icon-btn" aria-label="Close Skills Library">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="skills-top-bar">
+            <p class="skills-intro">Installed skills extend the assistant's behavior, style, and specialized SecOps workflows.</p>
+            <button id="showAddSkillBtn" class="primary-btn small-btn">+ Add Skill</button>
+          </div>
+
+          <!-- Add / Import Skill Panel -->
+          <div id="addSkillPanel" class="add-skill-panel hidden">
+            <div class="add-skill-tabs">
+              <button class="skill-tab-btn active" data-tab="importUrl">Import URL</button>
+              <button class="skill-tab-btn" data-tab="customSkill">Paste / Write</button>
+            </div>
+
+            <!-- Import URL Form -->
+            <div id="importUrlForm" class="tab-pane active">
+              <label for="skillUrlInput">SKILL.md Raw URL (GitHub, GitLab, etc.)</label>
+              <div class="input-with-btn">
+                <input type="url" id="skillUrlInput" placeholder="https://raw.githubusercontent.com/.../SKILL.md" />
+                <button id="fetchSkillBtn" class="primary-btn">Fetch & Install</button>
+              </div>
+              <small class="hint">Paste any public raw markdown URL containing a SKILL.md definition.</small>
+            </div>
+
+            <!-- Custom / Write Form -->
+            <div id="customSkillForm" class="tab-pane hidden">
+              <div class="form-group">
+                <label for="customSkillName">Skill Name</label>
+                <input type="text" id="customSkillName" placeholder="e.g. Incident Response Guide" />
+              </div>
+              <div class="form-group">
+                <label for="customSkillDesc">Short Description</label>
+                <input type="text" id="customSkillDesc" placeholder="Summary of what this skill instructs..." />
+              </div>
+              <div class="form-group">
+                <label for="customSkillContent">Skill Instructions (Markdown)</label>
+                <textarea id="customSkillContent" rows="6" placeholder="Write or paste SKILL.md instructions... (YAML frontmatter supported)"></textarea>
+              </div>
+              <button id="saveCustomSkillBtn" class="primary-btn">Save Skill</button>
+            </div>
+
+            <div id="addSkillStatus" class="status-msg"></div>
+          </div>
+
+          <!-- Skills Cards Container -->
+          <div id="skillsListContainer" class="skills-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="settingsModalTitle">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 id="settingsModalTitle">Assistant Configuration</h3>
+          <button id="closeSettingsBtn" class="icon-btn" aria-label="Close Settings">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Authentication Mode</label>
+            <div class="radio-group">
+              <label>
+                <input type="radio" name="authMode" value="apiKey" checked>
+                <span>Gemini API Key (BYOK)</span>
+              </label>
+              <label>
+                <input type="radio" name="authMode" value="vertexOAuth">
+                <span>Google Cloud Vertex AI (OAuth)</span>
+              </label>
+            </div>
+          </div>
+
+          <div id="apiKeyGroup" class="form-group">
+            <label for="apiKeyInput">Gemini API Key</label>
+            <input type="password" id="apiKeyInput" placeholder="AIzaSy..." />
+            <small>Get a key from <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a>. Stored locally in your browser.</small>
+          </div>
+
+          <div id="vertexGroup" class="form-group hidden">
+            <label for="gcpProjectInput">Google Cloud Project ID</label>
+            <input type="text" id="gcpProjectInput" value="sdl-preview-americas" />
+
+            <label for="gcpRegionInput" style="margin-top: 8px;">GCP Region</label>
+            <input type="text" id="gcpRegionInput" value="global" />
+
+            <label for="oauthClientIdInput" style="margin-top: 8px;">OAuth 2.0 Client ID</label>
+            <input type="text" id="oauthClientIdInput" placeholder="123456...apps.googleusercontent.com" />
+            <small>Registered in GCP with Item ID: <code>jkeacofgfoelcccpjomcngpfemoljkmi</code></small>
+          </div>
+
+          <div class="form-group">
+            <label for="modelSelect">Gemini Model (3.x)</label>
+            <select id="modelSelect">
+              <option value="gemini-3.8-flash" selected>gemini-3.8-flash (Recommended, fast & responsive)</option>
+              <option value="gemini-3.8-pro">gemini-3.8-pro (Deep reasoning)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
+              <input type="checkbox" id="mcpGroundingCheckbox" checked />
+              <span>Ground with Google Developer Knowledge MCP</span>
+            </label>
+            <small style="margin-top: 4px; display: block;">Enables real-time doc lookups for Chronicle SecOps, UDM schemas, and APIs.</small>
+          </div>
+
+          <div class="form-group">
+            <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
+              <input type="checkbox" id="secopsMcpCheckbox" checked />
+              <span>Enable Live SecOps Remote MCP Server</span>
+            </label>
+            <small style="margin-top: 4px; display: block;">Enables live SOAR/SIEM API tools (<code>udm_search</code>, <code>list_cases</code>, <code>list_case_alerts</code>, <code>create_case_comment</code>) via <code>us-chronicle.googleapis.com/mcp</code>.</small>
+
+            <div id="secopsMcpOptions" style="margin-top: 8px;">
+              <label for="secopsCustomerIdInput">SecOps Customer ID</label>
+              <input type="text" id="secopsCustomerIdInput" value="a556547c-1cff-43ef-a2e4-cf5b12a865df" style="margin-top: 4px;" />
+
+              <label for="secopsRegionInput" style="margin-top: 8px;">SecOps Region</label>
+              <input type="text" id="secopsRegionInput" value="us" style="margin-top: 4px;" />
+            </div>
+          </div>
+
+          <div id="settingsStatus" class="status-msg"></div>
+        </div>
+        <div class="modal-footer">
+          <button id="saveSettingsBtn" class="primary-btn">Save Settings</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../content/dom_utils.js"></script>
+  <script src="../services/prompts.js"></script>
+  <script src="../services/skill_manager.js"></script>
+  <script src="../services/auth_service.js"></script>
+  <script src="../services/mcp_client.js"></script>
+  <script src="../services/gemini_api.js"></script>
+  <script src="marked.min.js"></script>
+  <script src="sidepanel.js"></script>
+</body>
+</html>

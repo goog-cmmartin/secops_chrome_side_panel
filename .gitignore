@@ -1,0 +1,49 @@
+# =====================================================================
+# Google SecOps Assistant Chrome Extension — .gitignore
+# =====================================================================
+
+# Operating System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor & IDE Directories
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+
+# Environment Variables & Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.crt
+*credential*.json
+*service_account*.json
+.secret*
+token.json
+tokens.json
+
+# Chrome Extension Package & Build Artifacts
+*.crx
+*.zip
+dist/
+build/
+out/
+
+# Node & Package Manager Artifacts
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
