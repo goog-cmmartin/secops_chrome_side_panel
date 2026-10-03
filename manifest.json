@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Google SecOps Assistant & Troubleshooter",
-  "version": "1.2.20",
+  "version": "1.2.21",
   "description": "AI-powered side panel assistant for training, query building, and troubleshooting in Google SecOps and Cloud Logging.",
   "icons": {
     "16": "assets/icon-16.png",

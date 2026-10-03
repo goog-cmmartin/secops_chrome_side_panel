@@ -9,6 +9,7 @@
 
 const DOCS_MCP_ENDPOINT = "https://developerknowledge.googleapis.com/mcp";
 const LOGS_MCP_ENDPOINT = "https://logging.googleapis.com/mcp";
+const MCP_PROTOCOL_VERSION = "2026-07-28";
 const DEFAULT_SECOPS_CUSTOMER_ID = "";
 const DEFAULT_SECOPS_PROJECT_ID = "";
 const DEFAULT_SECOPS_REGION = "us";
@@ -727,6 +728,49 @@ window.SecOpsMcpClient = {
   },
 
   /**
+   * Extract custom headers defined by tool input schema using the x-mcp-header property (MCP 2026-07-28).
+   * Mirrors designated argument values into Mcp-Param-{HeaderName} HTTP headers.
+   */
+  extractCustomHeaders(toolName, callArgs = {}, context = {}) {
+    const customHeaders = {};
+    if (!callArgs || typeof callArgs !== "object") callArgs = {};
+
+    // 1. Look up schema from GEMINI_FUNCTION_DECLARATIONS
+    const decl = GEMINI_FUNCTION_DECLARATIONS.find((d) => d.name === toolName);
+    const properties = decl?.parameters?.properties || {};
+
+    for (const [propName, propDef] of Object.entries(properties)) {
+      if (propDef && propDef["x-mcp-header"]) {
+        const headerSuffix = propDef["x-mcp-header"];
+        const argValue = callArgs[propName];
+        if (argValue !== undefined && argValue !== null) {
+          // Primitive types: string, integer, boolean (RFC 9110 token safe)
+          if (typeof argValue === "string" || typeof argValue === "number" || typeof argValue === "boolean") {
+            const headerName = `Mcp-Param-${headerSuffix}`;
+            customHeaders[headerName] = String(argValue);
+          }
+        }
+      }
+    }
+
+    // 2. Standard Google Cloud parameter mirroring (Region, Project) if designated in context or args
+    if (!customHeaders["Mcp-Param-Project"]) {
+      const proj = callArgs.projectId || callArgs.project || context.projectId;
+      if (proj && typeof proj === "string") {
+        customHeaders["Mcp-Param-Project"] = proj;
+      }
+    }
+    if (!customHeaders["Mcp-Param-Region"]) {
+      const reg = callArgs.region || context.region;
+      if (reg && typeof reg === "string") {
+        customHeaders["Mcp-Param-Region"] = reg;
+      }
+    }
+
+    return customHeaders;
+  },
+
+  /**
    * Determine the appropriate remote MCP endpoint for a tool call
    */
   getEndpointForTool(toolName, region = DEFAULT_SECOPS_REGION) {
@@ -874,22 +918,37 @@ window.SecOpsMcpClient = {
       }
     }
 
+    // Stateless Core MCP 2026-07-28 request payload with _meta parameter
     const payload = {
       jsonrpc: "2.0",
       id: Date.now(),
       method: "tools/call",
       params: {
+        _meta: {
+          "io.modelcontextprotocol/protocolVersion": MCP_PROTOCOL_VERSION,
+          "io.modelcontextprotocol/clientInfo": {
+            name: "SecOpsSidePanel",
+            version: "1.2.21"
+          }
+        },
         name: toolName,
         arguments: callArgs
       }
     };
 
+    // Standard Request Headers per MCP 2026-07-28 Streamable HTTP specification
     const headers = {
       "Content-Type": "application/json",
       "Accept": "application/json",
+      "MCP-Protocol-Version": MCP_PROTOCOL_VERSION,
       "Mcp-Method": "tools/call",
+      "Mcp-Name": toolName,
       "X-goog-user-project": projectId
     };
+
+    // Mirror parameter headers per MCP 2026-07-28 x-mcp-header specification
+    const customParamHeaders = this.extractCustomHeaders(toolName, callArgs, { projectId, region });
+    Object.assign(headers, customParamHeaders);
 
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;

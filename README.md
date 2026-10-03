@@ -101,3 +101,10 @@ The extension integrates three official Google Remote MCP endpoints over Streama
 3. **Google Cloud Logging Remote MCP** (`https://logging.googleapis.com/mcp`):
    - Direct query of Cloud Audit Logs, infrastructure logs, and telemetry sinks (`list_log_entries`, `list_log_names`, `list_buckets`, `get_bucket`, `list_views`, `get_view`).
 
+### Stateless Core (MCP Version 2026-07-28)
+The extension implements the official **MCP Version 2026-07-28** stateless specification:
+- **Stateless RPC**: Direct self-contained HTTP requests without stateful `initialize`/`initialized` handshakes or `Mcp-Session-Id`.
+- **Standard Request Headers**: Declares `MCP-Protocol-Version: 2026-07-28`, `Mcp-Method: tools/call`, and `Mcp-Name: <toolName>`.
+- **Body Metadata**: Enforces `params._meta["io.modelcontextprotocol/protocolVersion"]` and client metadata matching protocol headers.
+- **Parameter Mirroring (`x-mcp-header`)**: Automatically mirrors designated tool routing parameters into `Mcp-Param-{HeaderName}` headers for low-latency edge proxy routing.
+
