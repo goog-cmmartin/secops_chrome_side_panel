@@ -22,5 +22,8 @@ window.__SECOPS_LOCAL_CONFIG__ = {
   secopsRegion: "us",
 
   // OAuth 2.0 Client ID for Google Cloud Vertex AI
-  oauthClientId: "" // e.g. "123456789-abcdef.apps.googleusercontent.com"
+  oauthClientId: "", // e.g. "123456789-abcdef.apps.googleusercontent.com"
+
+  // Enable Google Cloud Logging Remote MCP Server (default: true)
+  enableLoggingMcp: true
 };

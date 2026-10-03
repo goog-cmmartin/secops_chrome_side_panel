@@ -354,6 +354,14 @@
             </div>
           </div>
 
+          <div class="form-group">
+            <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
+              <input type="checkbox" id="loggingMcpCheckbox" checked />
+              <span>Enable Google Cloud Logging Remote MCP Server</span>
+            </label>
+            <small style="margin-top: 4px; display: block;">Enables Cloud Audit Logs and GCP telemetry tools (<code>list_log_entries</code>, <code>list_log_names</code>) via <code>logging.googleapis.com/mcp</code>.</small>
+          </div>
+
           <div id="settingsStatus" class="status-msg"></div>
         </div>
         <div class="modal-footer">

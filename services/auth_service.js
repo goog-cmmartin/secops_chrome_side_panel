@@ -13,7 +13,8 @@ const DEFAULT_SETTINGS = {
   enableMcp: true,
   secopsCustomerId: "",
   secopsRegion: "us",
-  enableSecOpsMcp: true
+  enableSecOpsMcp: true,
+  enableLoggingMcp: true
 };
 
 window.SecOpsAuthService = {

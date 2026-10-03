@@ -30,6 +30,8 @@ function gatherCurrentContext() {
     featureContext = window.SecOpsSettingsExtractor.extract();
   } else if (window.SecOpsBreachAnalyticsExtractor && window.SecOpsBreachAnalyticsExtractor.matches(currentUrl)) {
     featureContext = window.SecOpsBreachAnalyticsExtractor.extract();
+  } else if (window.SecOpsLogsExplorerExtractor && window.SecOpsLogsExplorerExtractor.matches(currentUrl)) {
+    featureContext = window.SecOpsLogsExplorerExtractor.extract();
   } else {
     // Fallback: general view
     const mainEl = document.querySelector("main, [role='main'], #main-content");

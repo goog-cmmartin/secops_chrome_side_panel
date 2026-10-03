@@ -168,6 +168,7 @@ const gcpRegionInput = document.getElementById("gcpRegionInput");
 const oauthClientIdInput = document.getElementById("oauthClientIdInput");
 const mcpGroundingCheckbox = document.getElementById("mcpGroundingCheckbox");
 const secopsMcpCheckbox = document.getElementById("secopsMcpCheckbox");
+const loggingMcpCheckbox = document.getElementById("loggingMcpCheckbox");
 const secopsCustomerIdInput = document.getElementById("secopsCustomerIdInput");
 const secopsRegionInput = document.getElementById("secopsRegionInput");
 const modelSelect = document.getElementById("modelSelect");
@@ -728,10 +729,13 @@ async function handleSendMessage(customPrompt = null, options = {}) {
       abortSignal: currentAbortController.signal,
       onToolActivity: ({ tool, query }) => {
         const isDocs = tool === "search_documents" || tool === "get_documents";
+        const isLogging = tool.startsWith("list_log_") || tool.includes("_bucket") || tool.includes("_view");
         const iconSvg = isDocs
           ? `<svg class="pill-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>`
+          : isLogging
+          ? `<svg class="pill-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="7" y1="8" x2="17" y2="8"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="13" y2="16"/></svg>`
           : `<svg class="pill-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`;
-        const label = isDocs ? "Google SecOps Docs" : `SecOps Remote MCP (${tool})`;
+        const label = isDocs ? "Google SecOps Docs" : isLogging ? `Cloud Logging (${tool})` : `SecOps Remote MCP (${tool})`;
 
         let queryDisplay = query ? `<em>${escapeHtml(query)}</em>` : `<em>${escapeHtml(tool)}</em>`;
         if (isDocs && query && window.SecOpsMcpClient?.normalizeDocUrl) {
@@ -1082,6 +1086,16 @@ function renderQuickActionChips(ctx) {
         { label: "⚡ Check setting errors", category: "action", targetMcp: "action", prompt: `Analyze the visible errors on this ${title} page and check live settings using SecOps MCP.` }
       ];
     }
+  } else if (fc.feature === "Cloud Logging Explorer") {
+    chips = [
+      // Help suggestions (Developer Knowledge MCP)
+      { label: "📖 Logging query syntax", category: "help", targetMcp: "help", prompt: "Search Google Cloud documentation for Cloud Logging query language syntax, comparison operators, and timestamp filters." },
+      { label: "📖 Cloud Audit Logs guide", category: "help", targetMcp: "help", prompt: "Search Google Cloud documentation for Cloud Audit Logs structure, Admin Activity, Data Access, and System Event logs." },
+      // Action suggestions (Cloud Logging MCP)
+      { label: "⚡ Search error logs (last 1h)", category: "action", targetMcp: "action", prompt: "Query Cloud Logging for severity >= ERROR entries from the last 1 hour using Cloud Logging MCP." },
+      { label: "⚡ List log streams", category: "action", targetMcp: "action", prompt: "List available log names and telemetry streams in this Google Cloud project using Cloud Logging MCP." },
+      { label: "⚡ Query audit modifications", category: "action", targetMcp: "action", prompt: "Search Cloud Audit Logs for IAM and administrative configuration changes using Cloud Logging MCP." }
+    ];
   } else if (fc.feature === "UDM Search") {
     chips = [
       // Help suggestions (Developer Knowledge MCP)
@@ -1385,6 +1399,9 @@ settingsBtn.addEventListener("click", async () => {
   if (secopsMcpCheckbox) {
     secopsMcpCheckbox.checked = settings.enableSecOpsMcp !== false;
   }
+  if (loggingMcpCheckbox) {
+    loggingMcpCheckbox.checked = settings.enableLoggingMcp !== false;
+  }
   if (secopsCustomerIdInput) {
     secopsCustomerIdInput.value = settings.secopsCustomerId || "";
   }
@@ -1427,6 +1444,7 @@ saveSettingsBtn.addEventListener("click", async () => {
     model: modelSelect.value,
     enableMcp: mcpGroundingCheckbox ? mcpGroundingCheckbox.checked : true,
     enableSecOpsMcp: secopsMcpCheckbox ? secopsMcpCheckbox.checked : true,
+    enableLoggingMcp: loggingMcpCheckbox ? loggingMcpCheckbox.checked : true,
     secopsCustomerId: secopsCustomerIdInput ? secopsCustomerIdInput.value.trim() : "",
     secopsRegion: secopsRegionInput ? (secopsRegionInput.value.trim() || "us") : "us"
   };

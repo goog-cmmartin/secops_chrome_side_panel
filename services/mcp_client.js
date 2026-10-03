@@ -1,17 +1,19 @@
 /**
- * Google SecOps & Developer Knowledge Multi-Server MCP Client
+ * Google SecOps, Cloud Logging & Developer Knowledge Multi-Server MCP Client
  * Communicates with:
  * 1. Google Developer Knowledge MCP: https://developerknowledge.googleapis.com/mcp
  * 2. Google SecOps Remote MCP: https://{region}-chronicle.googleapis.com/mcp
+ * 3. Google Cloud Logging Remote MCP: https://logging.googleapis.com/mcp
  * over Streamable HTTP JSON-RPC 2.0
  */
 
 const DOCS_MCP_ENDPOINT = "https://developerknowledge.googleapis.com/mcp";
+const LOGS_MCP_ENDPOINT = "https://logging.googleapis.com/mcp";
 const DEFAULT_SECOPS_CUSTOMER_ID = "";
 const DEFAULT_SECOPS_PROJECT_ID = "";
 const DEFAULT_SECOPS_REGION = "us";
 
-// Combined Gemini Function Declarations for Developer Knowledge & SecOps Tools
+// Combined Gemini Function Declarations for Developer Knowledge, SecOps & Cloud Logging Tools
 const GEMINI_FUNCTION_DECLARATIONS = [
   // --- Google Developer Knowledge Documentation Tools ---
   {
@@ -569,11 +571,125 @@ const GEMINI_FUNCTION_DECLARATIONS = [
       },
       required: ["ruleId"]
     }
+  },
+
+  // --- Google Cloud Logging Remote MCP Tools (GCP Infrastructure & Audit Telemetry) ---
+  {
+    name: "list_log_entries",
+    description: "Search and retrieve Google Cloud Logging entries (Cloud Audit Logs, VPC flow logs, IAM modification logs, application logs, system events) using the Cloud Logging query language filter. Can filter by severity, resource type, timestamp, or payload text.",
+    parameters: {
+      type: "OBJECT",
+      properties: {
+        filter: {
+          type: "STRING",
+          description: "Cloud Logging query language filter, e.g. 'severity >= ERROR' or 'protoPayload.methodName =~ \"SetIamPolicy\"' or 'resource.type = \"gce_instance\"'."
+        },
+        orderBy: {
+          type: "STRING",
+          description: "Sorting order: 'timestamp desc' (newest first, default) or 'timestamp asc' (oldest first)."
+        },
+        pageSize: {
+          type: "INTEGER",
+          description: "Maximum number of log entries to retrieve (default: 20)."
+        },
+        resourceNames: {
+          type: "ARRAY",
+          items: { type: "STRING" },
+          description: "List of resource names to query, e.g. ['projects/YOUR_PROJECT_ID']. Automatically populated from active GCP Project if omitted."
+        }
+      }
+    }
+  },
+  {
+    name: "list_log_names",
+    description: "List log names available in the Google Cloud project (e.g. cloudaudit.googleapis.com/activity, syslog, compute.googleapis.com).",
+    parameters: {
+      type: "OBJECT",
+      properties: {
+        parent: {
+          type: "STRING",
+          description: "Resource parent name, e.g. 'projects/YOUR_PROJECT_ID'. Automatically populated if omitted."
+        },
+        pageSize: {
+          type: "INTEGER",
+          description: "Maximum number of log names to return."
+        }
+      }
+    }
+  },
+  {
+    name: "list_buckets",
+    description: "List Google Cloud Logging storage buckets (e.g. _Default, _Required, security log sinks) in the project.",
+    parameters: {
+      type: "OBJECT",
+      properties: {
+        parent: {
+          type: "STRING",
+          description: "Resource parent name, e.g. 'projects/YOUR_PROJECT_ID/locations/-'. Automatically populated if omitted."
+        },
+        pageSize: {
+          type: "INTEGER",
+          description: "Maximum number of buckets to return."
+        }
+      }
+    }
+  },
+  {
+    name: "get_bucket",
+    description: "Get details and retention configuration of a specific Google Cloud Logging bucket.",
+    parameters: {
+      type: "OBJECT",
+      properties: {
+        name: {
+          type: "STRING",
+          description: "Full resource name of the bucket, e.g. 'projects/YOUR_PROJECT_ID/locations/global/buckets/_Default'."
+        }
+      },
+      required: ["name"]
+    }
+  },
+  {
+    name: "list_views",
+    description: "List log views defined on a Cloud Logging bucket.",
+    parameters: {
+      type: "OBJECT",
+      properties: {
+        parent: {
+          type: "STRING",
+          description: "Full resource name of the bucket parent, e.g. 'projects/YOUR_PROJECT_ID/locations/global/buckets/_Default'."
+        }
+      },
+      required: ["parent"]
+    }
+  },
+  {
+    name: "get_view",
+    description: "Get details and filter boundaries of a specific Cloud Logging view.",
+    parameters: {
+      type: "OBJECT",
+      properties: {
+        name: {
+          type: "STRING",
+          description: "Full resource name of the view, e.g. 'projects/YOUR_PROJECT_ID/locations/global/buckets/_Default/views/_AllLogs'."
+        }
+      },
+      required: ["name"]
+    }
   }
 ];
 
 // Set of tool names that belong to Google Developer Knowledge
 const DOCS_TOOLS = new Set(["search_documents", "get_documents"]);
+
+// Set of tool names that belong to Google Cloud Logging Remote MCP
+const LOGGING_TOOLS = new Set([
+  "list_log_entries",
+  "list_log_names",
+  "list_buckets",
+  "get_bucket",
+  "list_views",
+  "get_view"
+]);
 
 window.SecOpsMcpClient = {
   /**
@@ -587,7 +703,10 @@ window.SecOpsMcpClient = {
       declarations = declarations.filter((d) => !DOCS_TOOLS.has(d.name));
     }
     if (settings.enableSecOpsMcp === false) {
-      declarations = declarations.filter((d) => DOCS_TOOLS.has(d.name));
+      declarations = declarations.filter((d) => DOCS_TOOLS.has(d.name) || LOGGING_TOOLS.has(d.name));
+    }
+    if (settings.enableLoggingMcp === false) {
+      declarations = declarations.filter((d) => !LOGGING_TOOLS.has(d.name));
     }
 
     // Filter tools based on Help vs Action mode
@@ -595,7 +714,7 @@ window.SecOpsMcpClient = {
       // Developer Knowledge MCP only (documentation & guidance)
       declarations = declarations.filter((d) => DOCS_TOOLS.has(d.name));
     } else if (targetMcpMode === "action") {
-      // SecOps MCP & future operational tools only (actions & live operations)
+      // SecOps MCP & Cloud Logging MCP (actions & live operations)
       declarations = declarations.filter((d) => !DOCS_TOOLS.has(d.name));
     }
 
@@ -613,6 +732,9 @@ window.SecOpsMcpClient = {
   getEndpointForTool(toolName, region = DEFAULT_SECOPS_REGION) {
     if (DOCS_TOOLS.has(toolName)) {
       return DOCS_MCP_ENDPOINT;
+    }
+    if (LOGGING_TOOLS.has(toolName)) {
+      return LOGS_MCP_ENDPOINT;
     }
     const safeRegion = (region || DEFAULT_SECOPS_REGION).toLowerCase();
     return `https://${safeRegion}-chronicle.googleapis.com/mcp`;
@@ -637,12 +759,37 @@ window.SecOpsMcpClient = {
     const customerId = settings.secopsCustomerId || DEFAULT_SECOPS_CUSTOMER_ID;
     const projectId = project || settings.gcpProject || DEFAULT_SECOPS_PROJECT_ID;
 
-    // Check if this is a SecOps tool and inject required tenant context
     const isDocs = DOCS_TOOLS.has(toolName);
+    const isLogging = LOGGING_TOOLS.has(toolName);
     const targetEndpoint = this.getEndpointForTool(toolName, region);
 
     const callArgs = { ...args };
-    if (!isDocs) {
+    if (isLogging) {
+      if (!projectId) {
+        throw new Error(
+          "Google Cloud Project ID is not configured. Please open Settings (⚙️) to enter your Project ID for Cloud Logging."
+        );
+      }
+      if (toolName === "list_log_entries") {
+        if (!callArgs.resourceNames || !Array.isArray(callArgs.resourceNames) || callArgs.resourceNames.length === 0) {
+          callArgs.resourceNames = [`projects/${projectId}`];
+        }
+        if (!callArgs.orderBy) {
+          callArgs.orderBy = "timestamp desc";
+        }
+        if (!callArgs.pageSize) {
+          callArgs.pageSize = 20;
+        }
+      } else if (toolName === "list_log_names") {
+        if (!callArgs.parent) {
+          callArgs.parent = `projects/${projectId}`;
+        }
+      } else if (toolName === "list_buckets") {
+        if (!callArgs.parent) {
+          callArgs.parent = `projects/${projectId}/locations/-`;
+        }
+      }
+    } else if (!isDocs) {
       if (!callArgs.projectId) callArgs.projectId = projectId;
       if (!callArgs.customerId) callArgs.customerId = customerId;
       if (!callArgs.region) callArgs.region = region;
@@ -739,6 +886,8 @@ window.SecOpsMcpClient = {
 
     const headers = {
       "Content-Type": "application/json",
+      "Accept": "application/json",
+      "Mcp-Method": "tools/call",
       "X-goog-user-project": projectId
     };
 
@@ -1297,6 +1446,12 @@ window.SecOpsMcpClient = {
           return this.patchEntity(toolName, rawResult);
         case "generate_synthetic_events":
           return this.patchGenerateSyntheticEvents(rawResult);
+        case "list_log_entries":
+          return this.patchListLogEntries(rawResult);
+        case "list_log_names":
+        case "list_buckets":
+        case "list_views":
+          return this.pruneDeepObject(rawResult, 3);
         default:
           return this.pruneDeepObject(rawResult, 4);
       }
@@ -1304,6 +1459,45 @@ window.SecOpsMcpClient = {
       console.warn(`[MCP] Failed to run specialized patch for ${toolName}, falling back to deep pruner:`, patchErr);
       return this.pruneDeepObject(rawResult, 4);
     }
+  },
+
+  /**
+   * Evaluates and normalizes list_log_entries response from Cloud Logging
+   */
+  patchListLogEntries(data) {
+    const rawEntries = data.entries || (Array.isArray(data) ? data : []);
+    const entries = rawEntries.slice(0, 25).map((entry) => {
+      if (!entry || typeof entry !== "object") return entry;
+      const item = {
+        timestamp: entry.timestamp,
+        severity: entry.severity || "DEFAULT",
+        logName: entry.logName ? entry.logName.split("/").pop() : undefined,
+        insertId: entry.insertId,
+        resource: entry.resource ? { type: entry.resource.type, labels: entry.resource.labels } : undefined
+      };
+
+      if (entry.textPayload) {
+        item.textPayload = entry.textPayload.slice(0, 500);
+      } else if (entry.jsonPayload) {
+        item.jsonPayload = this.pruneDeepObject(entry.jsonPayload, 2);
+      } else if (entry.protoPayload) {
+        item.auditLog = {
+          serviceName: entry.protoPayload.serviceName,
+          methodName: entry.protoPayload.methodName,
+          resourceName: entry.protoPayload.resourceName,
+          callerIp: entry.protoPayload.requestMetadata?.callerIp,
+          principalEmail: entry.protoPayload.authenticationInfo?.principalEmail,
+          status: entry.protoPayload.status
+        };
+      }
+      return item;
+    });
+
+    return {
+      totalEntriesReturned: entries.length,
+      nextPageToken: data.nextPageToken || undefined,
+      entries
+    };
   },
 
   /**
@@ -1324,7 +1518,7 @@ window.SecOpsMcpClient = {
     }
 
     // Handle chronicle/docs/... or security-operations/... patterns
-    if (clean.startsWith("chronicle/docs/") || clean.startsWith("security-operations/")) {
+    if (clean.startsWith("chronicle/docs/") || clean.startsWith("security-operations/") || clean.startsWith("logging/docs/")) {
       return `https://docs.cloud.google.com/${clean}`;
     }
 
@@ -1408,7 +1602,7 @@ window.SecOpsMcpClient = {
       let match;
       while ((match = urlRegex.exec(str)) !== null) {
         const found = match[0];
-        if (found.includes("chronicle/docs") || found.includes("security-operations")) {
+        if (found.includes("chronicle/docs") || found.includes("security-operations") || found.includes("logging/docs")) {
           addSource(found);
         }
       }

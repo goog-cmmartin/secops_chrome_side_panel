@@ -85,5 +85,19 @@ Click the extension icon or open the Side Panel, then click the **Settings gear 
 - Click **"🔍 Explain / fix UDM query"** or ask: *"How can I filter for successful authentication from external IPs?"*
 
 ### 4. Grounding with Chronicle Documentation
-- Open any article under `https://docs.cloud.google.com/chronicle/docs`.
+- Open any article under `https://docs.cloud.google.com/chronicle/docs` or `https://docs.cloud.google.com/logging/docs`.
 - The assistant synchronizes with the documentation context, allowing you to ask questions directly grounded in the article content.
+
+---
+
+## Remote MCP Multi-Server Integration
+
+The extension integrates three official Google Remote MCP endpoints over Streamable HTTP JSON-RPC 2.0:
+
+1. **Google Developer Knowledge MCP** (`https://developerknowledge.googleapis.com/mcp`):
+   - Real-time search and retrieval across Google SecOps, UDM schemas, and Google Cloud documentation.
+2. **Google SecOps Remote MCP** (`https://{region}-chronicle.googleapis.com/mcp`):
+   - Direct execution of live SecOps tools (`udm_search`, `list_cases`, `list_case_alerts`, `create_case_comment`, `validate_rule`, etc.).
+3. **Google Cloud Logging Remote MCP** (`https://logging.googleapis.com/mcp`):
+   - Direct query of Cloud Audit Logs, infrastructure logs, and telemetry sinks (`list_log_entries`, `list_log_names`, `list_buckets`, `get_bucket`, `list_views`, `get_view`).
+
