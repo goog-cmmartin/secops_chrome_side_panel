@@ -7,11 +7,11 @@ const DEFAULT_SETTINGS = {
   authMode: "apiKey", // 'apiKey' or 'vertexOAuth'
   apiKey: "",
   model: "gemini-3.8-flash",
-  gcpProject: "sdl-preview-americas",
+  gcpProject: "",
   gcpRegion: "global",
-  oauthClientId: "37679061640-cr39buop386u2uph5mf4e0qr82jvkei9.apps.googleusercontent.com",
+  oauthClientId: "",
   enableMcp: true,
-  secopsCustomerId: "a556547c-1cff-43ef-a2e4-cf5b12a865df",
+  secopsCustomerId: "",
   secopsRegion: "us",
   enableSecOpsMcp: true
 };
@@ -23,7 +23,15 @@ window.SecOpsAuthService = {
   async getSettings() {
     return new Promise((resolve) => {
       chrome.storage.local.get(DEFAULT_SETTINGS, (items) => {
-        resolve(items);
+        const localConfig = (typeof window !== "undefined" && window.__SECOPS_LOCAL_CONFIG__) || {};
+        const result = { ...items };
+        // Seed default fields from optional config.local.js if storage is unpopulated
+        for (const [key, val] of Object.entries(localConfig)) {
+          if (val && !result[key]) {
+            result[key] = val;
+          }
+        }
+        resolve(result);
       });
     });
   },

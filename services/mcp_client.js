@@ -7,8 +7,8 @@
  */
 
 const DOCS_MCP_ENDPOINT = "https://developerknowledge.googleapis.com/mcp";
-const DEFAULT_SECOPS_CUSTOMER_ID = "a556547c-1cff-43ef-a2e4-cf5b12a865df";
-const DEFAULT_SECOPS_PROJECT_ID = "sdl-preview-americas";
+const DEFAULT_SECOPS_CUSTOMER_ID = "";
+const DEFAULT_SECOPS_PROJECT_ID = "";
 const DEFAULT_SECOPS_REGION = "us";
 
 // Combined Gemini Function Declarations for Developer Knowledge & SecOps Tools
@@ -646,6 +646,12 @@ window.SecOpsMcpClient = {
       if (!callArgs.projectId) callArgs.projectId = projectId;
       if (!callArgs.customerId) callArgs.customerId = customerId;
       if (!callArgs.region) callArgs.region = region;
+
+      if (!callArgs.customerId && !callArgs.projectId) {
+        throw new Error(
+          "SecOps tenant credentials are not configured. Please open Settings (⚙️) to configure your Google Cloud Project ID and SecOps Customer ID."
+        );
+      }
 
       // Auto-populate default ISO 8601 time range for time-bounded queries when omitted by model
       if (toolName === "udm_search" || toolName === "search_raw_logs" || toolName === "list_rule_detections") {

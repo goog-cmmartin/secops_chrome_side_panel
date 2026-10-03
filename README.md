@@ -21,7 +21,7 @@ An AI-powered Chrome Side Panel extension designed to guide, train, and troubles
    - Streams responses token-by-token with code syntax highlighting and one-click copy buttons.
 5. **Flexible Authentication**:
    - **Mode A: Gemini API Key (BYOK)**: Instant setup using your individual key from Google AI Studio, securely saved in browser local storage.
-   - **Mode B: Google Cloud Vertex AI (OAuth)**: Enterprise integration using Google OAuth targeting project `sdl-preview-americas`.
+   - **Mode B: Google Cloud Vertex AI (OAuth)**: Enterprise integration using Google OAuth targeting your Google Cloud Project.
 
 ---
 
@@ -50,8 +50,8 @@ Click the extension icon or open the Side Panel, then click the **Settings gear 
 3. Select your preferred model (`gemini-3.8-flash` or `gemini-3.8-pro`).
 4. Click **Save Settings**.
 
-### Option B: Google Cloud Vertex AI OAuth (`sdl-preview-americas`)
-1. In Google Cloud Console for project `sdl-preview-americas`:
+### Option B: Google Cloud Vertex AI OAuth
+1. In Google Cloud Console for your GCP Project:
    - Go to **APIs & Services → Credentials**.
    - Click **Create Credentials → OAuth client ID**.
    - Select **Chrome extension** as the application type.
@@ -64,8 +64,8 @@ Click the extension icon or open the Side Panel, then click the **Settings gear 
    }
    ```
 3. In the extension Settings modal, select **Google Cloud Vertex AI (OAuth)**:
-   - Project ID: `sdl-preview-americas`
-   - Region: `us-central1`
+   - Project ID: `your-gcp-project-id`
+   - Region: `us-central1` (or `global`)
 4. Click **Save Settings**. Chrome will prompt for Google Account sign-in via `chrome.identity`.
 
 ---

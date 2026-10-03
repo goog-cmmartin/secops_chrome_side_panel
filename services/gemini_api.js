@@ -117,9 +117,14 @@ CRITICAL: Do NOT terminate the turn or generate your final answer after step 1 a
     };
 
     let token = null;
-    const project = settings.gcpProject || "sdl-preview-americas";
+    const project = settings.gcpProject || "";
 
     if (settings.authMode === "vertexOAuth") {
+      if (!project) {
+        throw new Error(
+          "Google Cloud Project ID is not configured. Please open Settings (⚙️) to enter your Project ID for Vertex AI OAuth."
+        );
+      }
       token = await window.SecOpsAuthService.getVertexAuthToken(true);
       let region = settings.gcpRegion || "global";
 

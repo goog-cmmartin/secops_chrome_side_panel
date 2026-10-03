@@ -1372,7 +1372,7 @@ settingsBtn.addEventListener("click", async () => {
   const settings = await window.SecOpsAuthService.getSettings();
   document.querySelector(`input[name="authMode"][value="${settings.authMode}"]`).checked = true;
   apiKeyInput.value = settings.apiKey || "";
-  gcpProjectInput.value = settings.gcpProject || "sdl-preview-americas";
+  gcpProjectInput.value = settings.gcpProject || "";
   gcpRegionInput.value = settings.gcpRegion || "global";
   if (oauthClientIdInput) {
     const manifestClientId = chrome.runtime.getManifest().oauth2?.client_id || "";
@@ -1386,7 +1386,7 @@ settingsBtn.addEventListener("click", async () => {
     secopsMcpCheckbox.checked = settings.enableSecOpsMcp !== false;
   }
   if (secopsCustomerIdInput) {
-    secopsCustomerIdInput.value = settings.secopsCustomerId || "a556547c-1cff-43ef-a2e4-cf5b12a865df";
+    secopsCustomerIdInput.value = settings.secopsCustomerId || "";
   }
   if (secopsRegionInput) {
     secopsRegionInput.value = settings.secopsRegion || "us";
@@ -1421,13 +1421,13 @@ saveSettingsBtn.addEventListener("click", async () => {
   const newSettings = {
     authMode: authMode,
     apiKey: apiKeyInput.value.trim(),
-    gcpProject: gcpProjectInput.value.trim() || "sdl-preview-americas",
+    gcpProject: gcpProjectInput.value.trim(),
     gcpRegion: gcpRegionInput.value.trim() || "global",
     oauthClientId: oauthClientIdInput ? oauthClientIdInput.value.trim() : "",
     model: modelSelect.value,
     enableMcp: mcpGroundingCheckbox ? mcpGroundingCheckbox.checked : true,
     enableSecOpsMcp: secopsMcpCheckbox ? secopsMcpCheckbox.checked : true,
-    secopsCustomerId: secopsCustomerIdInput ? (secopsCustomerIdInput.value.trim() || "a556547c-1cff-43ef-a2e4-cf5b12a865df") : "a556547c-1cff-43ef-a2e4-cf5b12a865df",
+    secopsCustomerId: secopsCustomerIdInput ? secopsCustomerIdInput.value.trim() : "",
     secopsRegion: secopsRegionInput ? (secopsRegionInput.value.trim() || "us") : "us"
   };
 
